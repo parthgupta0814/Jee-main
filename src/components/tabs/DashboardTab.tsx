@@ -22,7 +22,8 @@ import {
   ArrowUpRight,
   PieChart as PieIcon,
   CheckSquare,
-  Square
+  Square,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   ChapterRecord, 
@@ -107,9 +108,9 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     // Mock scores
     const avgMockScore = mocks.length > 0 
       ? Math.round(mocks.reduce((acc, m) => acc + m.totalScore, 0) / mocks.length) 
-      : profile.currentAvgScore;
+      : null;
     const latestMock = mocks.length > 0 ? mocks[mocks.length - 1] : null;
-    const latestScore = latestMock ? latestMock.totalScore : profile.currentAvgScore;
+    const latestScore = latestMock ? latestMock.totalScore : null;
 
     return {
       overallPct,
@@ -122,38 +123,42 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       latestScore,
       latestMock
     };
-  }, [chapters, pyqs, mocks, profile]);
+  }, [chapters, pyqs, mocks]);
 
   // Section 6: Subject Performance Table
   const subjectPerformance = useMemo(() => {
     const latest = stats.latestMock;
-    const pAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.physicsScore, 0) / mocks.length) : profile.physicsAvg;
-    const cAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.chemistryScore, 0) / mocks.length) : profile.chemistryAvg;
-    const mAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.mathsScore, 0) / mocks.length) : profile.mathsAvg;
+    const pAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.physicsScore, 0) / mocks.length) : (profile.physicsAvg || null);
+    const cAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.chemistryScore, 0) / mocks.length) : (profile.chemistryAvg || null);
+    const mAvg = mocks.length > 0 ? Math.round(mocks.reduce((s, m) => s + m.mathsScore, 0) / mocks.length) : (profile.mathsAvg || null);
 
-    // Average accuracy from chapters or mocks
-    const phyAcc = Math.round(chapters.filter(c => c.subject === 'Physics' && c.accuracy > 0).reduce((a, c, _, arr) => a + c.accuracy / (arr.length || 1), 0)) || 72;
-    const chemAcc = Math.round(chapters.filter(c => c.subject === 'Chemistry' && c.accuracy > 0).reduce((a, c, _, arr) => a + c.accuracy / (arr.length || 1), 0)) || 81;
-    const mathAcc = Math.round(chapters.filter(c => c.subject === 'Maths' && c.accuracy > 0).reduce((a, c, _, arr) => a + c.accuracy / (arr.length || 1), 0)) || 61;
+    // Average accuracy from chapters
+    const getSubjectAccuracy = (subj: Subject) => {
+      const activeChapters = chapters.filter(c => c.subject === subj && c.attemptedCount > 0);
+      if (activeChapters.length === 0) return null;
+      const totalCorrect = activeChapters.reduce((acc, c) => acc + c.correctCount, 0);
+      const totalAttempted = activeChapters.reduce((acc, c) => acc + c.attemptedCount, 0);
+      return totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : null;
+    };
 
     return [
       {
-        subject: 'Physics',
-        latest: latest ? latest.physicsScore : profile.physicsAvg,
+        subject: 'Physics' as Subject,
+        latest: latest ? latest.physicsScore : null,
         average: pAvg,
-        accuracy: phyAcc
+        accuracy: getSubjectAccuracy('Physics')
       },
       {
-        subject: 'Chemistry',
-        latest: latest ? latest.chemistryScore : profile.chemistryAvg,
+        subject: 'Chemistry' as Subject,
+        latest: latest ? latest.chemistryScore : null,
         average: cAvg,
-        accuracy: chemAcc
+        accuracy: getSubjectAccuracy('Chemistry')
       },
       {
-        subject: 'Maths',
-        latest: latest ? latest.mathsScore : profile.mathsAvg,
+        subject: 'Maths' as Subject,
+        latest: latest ? latest.mathsScore : null,
         average: mAvg,
-        accuracy: mathAcc
+        accuracy: getSubjectAccuracy('Maths')
       }
     ];
   }, [mocks, stats.latestMock, chapters, profile]);
@@ -326,16 +331,24 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         {/* Avg Mock Score */}
         <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs flex flex-col justify-between">
           <span className="text-[11px] font-bold text-slate-500 uppercase">Avg Mock</span>
-          <div className="text-2xl font-black text-slate-800 mt-1">{stats.avgMockScore}</div>
-          <span className="text-[10px] text-slate-400 mt-2">out of 300</span>
+          <div className="text-2xl font-black text-slate-800 mt-1">
+            {stats.avgMockScore !== null ? stats.avgMockScore : '—'}
+          </div>
+          <span className="text-[10px] text-slate-400 mt-2">
+            {stats.avgMockScore !== null ? 'out of 300' : 'No mocks logged'}
+          </span>
         </div>
 
         {/* Latest Mock Score */}
         <div className="bg-emerald-50/70 border border-emerald-300 rounded-xl p-3.5 shadow-xs flex flex-col justify-between">
           <span className="text-[11px] font-bold text-emerald-800 uppercase">Latest Mock</span>
-          <div className="text-2xl font-black text-emerald-900 mt-1">{stats.latestScore}</div>
+          <div className="text-2xl font-black text-emerald-900 mt-1">
+            {stats.latestScore !== null ? stats.latestScore : '—'}
+          </div>
           <span className="text-[10px] font-semibold text-emerald-700 mt-2">
-            +{stats.latestScore - stats.avgMockScore >= 0 ? stats.latestScore - stats.avgMockScore : 0} vs avg
+            {stats.latestScore !== null && stats.avgMockScore !== null
+              ? `${stats.latestScore - stats.avgMockScore >= 0 ? '+' : ''}${stats.latestScore - stats.avgMockScore} vs avg`
+              : 'No attempts'}
           </span>
         </div>
       </div>
@@ -349,7 +362,11 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               <TrendingUp className="w-5 h-5 text-emerald-600" />
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Score Trend (Mocks &rarr; Total Marks)</h3>
-                <p className="text-xs text-slate-500">Tracking progress toward your target score of {profile.targetMarks} marks.</p>
+                <p className="text-xs text-slate-500">
+                  {profile.targetMarks > 0 
+                    ? `Tracking progress toward your target score of ${profile.targetMarks} marks.`
+                    : 'Track your mock scores and see your trajectory toward your target.'}
+                </p>
               </div>
             </div>
             <button
@@ -361,33 +378,55 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             </button>
           </div>
 
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-                <YAxis domain={[80, 220]} stroke="#94a3b8" fontSize={11} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
-                />
-                <ReferenceLine y={profile.targetMarks} label="Target (180)" stroke="#10b981" strokeDasharray="4 4" />
-                <Line 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#0f766e" 
-                  strokeWidth={3} 
-                  dot={{ r: 5, fill: '#0f766e', strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7 }}
-                  name="Mock Score"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {mockChartData.length > 0 ? (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={mockChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                  <YAxis domain={[0, 300]} stroke="#94a3b8" fontSize={11} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+                  />
+                  {profile.targetMarks > 0 && (
+                    <ReferenceLine y={profile.targetMarks} label={`Target (${profile.targetMarks})`} stroke="#10b981" strokeDasharray="4 4" />
+                  )}
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#0f766e" 
+                    strokeWidth={3} 
+                    dot={{ r: 5, fill: '#0f766e', strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 7 }}
+                    name="Mock Score"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 w-full flex flex-col items-center justify-center bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center p-6">
+              <TrendingUp className="w-8 h-8 text-slate-300 mb-2" />
+              <p className="text-xs font-bold text-slate-700">No mock tests recorded yet</p>
+              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+                Log your full mock tests or part tests to see your score trajectory and target score gap tracking.
+              </p>
+              <button
+                onClick={() => onNavigateToTab('MOCK ANALYSIS')}
+                className="mt-3 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                + Log First Mock Test
+              </button>
+            </div>
+          )}
 
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <span>Latest Mock: <strong>{stats.latestScore} / 300</strong></span>
-            <span>Target: <strong className="text-emerald-600">{profile.targetMarks} / 300</strong></span>
-            <span>Gap Remaining: <strong className="text-amber-600">{profile.targetMarks - stats.latestScore} marks</strong></span>
+            <span>Latest Mock: <strong>{stats.latestScore !== null ? `${stats.latestScore} / 300` : '—'}</strong></span>
+            <span>Target: <strong className="text-emerald-600">{profile.targetMarks > 0 ? `${profile.targetMarks} / 300` : '—'}</strong></span>
+            <span>Gap Remaining: <strong className="text-amber-600">
+              {stats.latestScore !== null && profile.targetMarks > 0 
+                ? `${Math.max(0, profile.targetMarks - stats.latestScore)} marks` 
+                : '—'}
+            </strong></span>
           </div>
         </div>
 
@@ -412,41 +451,55 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               Check tasks off as you study to update completion rates.
             </p>
 
-            <div className="space-y-2">
-              {todayTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => onToggleTask(task.id)}
-                  className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
-                    task.done
-                      ? 'bg-slate-50 border-slate-200 text-slate-400 line-through'
-                      : 'bg-white hover:bg-slate-50/80 border-slate-200 text-slate-800'
-                  }`}
+            {todayTasks.length === 0 ? (
+              <div className="py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                <CheckCircle2 className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                <p className="text-xs font-semibold text-slate-600">No tasks scheduled for today</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Plan your study sessions in the Daily Planner.</p>
+                <button
+                  onClick={() => onNavigateToTab('DAILY PLANNER')}
+                  className="mt-3 px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
                 >
-                  <button className="mt-0.5 text-slate-500 hover:text-emerald-600">
-                    {task.done ? (
-                      <CheckSquare className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <Square className="w-4 h-4 text-slate-400" />
-                    )}
-                  </button>
+                  Open Planner
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {todayTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => onToggleTask(task.id)}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                      task.done
+                        ? 'bg-slate-50 border-slate-200 text-slate-400 line-through'
+                        : 'bg-white hover:bg-slate-50/80 border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <button className="mt-0.5 text-slate-500 hover:text-emerald-600">
+                      {task.done ? (
+                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-400" />
+                      )}
+                    </button>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
-                        task.subject === 'Physics' ? 'bg-sky-100 text-sky-800' :
-                        task.subject === 'Chemistry' ? 'bg-teal-100 text-teal-800' :
-                        'bg-amber-100 text-amber-800'
-                      }`}>
-                        {task.subject}
-                      </span>
-                      <span className="font-semibold truncate">{task.chapter}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
+                          task.subject === 'Physics' ? 'bg-sky-100 text-sky-800' :
+                          task.subject === 'Chemistry' ? 'bg-teal-100 text-teal-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {task.subject}
+                        </span>
+                        <span className="font-semibold truncate">{task.chapter}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-0.5 truncate">{task.task}</p>
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5 truncate">{task.task}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
@@ -487,9 +540,15 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                       }`} />
                       <span>{sp.subject}</span>
                     </td>
-                    <td className="py-2.5 text-center font-bold text-slate-900">{sp.latest}</td>
-                    <td className="py-2.5 text-center text-slate-600">{sp.average}</td>
-                    <td className="py-2.5 text-right font-semibold text-emerald-600">{sp.accuracy}%</td>
+                    <td className="py-2.5 text-center font-bold text-slate-900">
+                      {sp.latest !== null ? sp.latest : '—'}
+                    </td>
+                    <td className="py-2.5 text-center text-slate-600">
+                      {sp.average !== null ? sp.average : '—'}
+                    </td>
+                    <td className="py-2.5 text-right font-semibold text-emerald-600">
+                      {sp.accuracy !== null ? `${sp.accuracy}%` : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -497,7 +556,16 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
 
           <div className="mt-4 p-2.5 bg-amber-50/70 border border-amber-200 rounded-lg text-amber-900 text-xs">
-            <strong>Key Insight:</strong> Maths average ({profile.mathsAvg}) has lowest accuracy (61%). Solving 5 more accurate questions in Maths will recover 20 marks faster than pushing Chemistry from 62 to 70.
+            <strong>Key Insight:</strong>{' '}
+            {mocks.length > 0 ? (
+              <span>
+                Based on your mock performance, prioritize question accuracy in your lowest scoring subject to reduce negative marks.
+              </span>
+            ) : (
+              <span>
+                Log mock tests and chapter questions to reveal your subject mark leakages and accuracy patterns.
+              </span>
+            )}
           </div>
         </div>
 
@@ -515,25 +583,32 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           <p className="text-xs text-slate-500 mb-3">Auto-ranked by low confidence, pending PYQs, and priority weight.</p>
 
           <div className="space-y-2">
-            {topPriorities.map((ch, idx) => (
-              <div key={ch.id} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
-                    {idx + 1}
-                  </span>
-                  <div className="truncate">
-                    <span className="font-bold text-slate-900 block truncate">{ch.chapter}</span>
-                    <span className="text-[10px] text-slate-500">{ch.subject} • Priority: {ch.priority}</span>
-                  </div>
-                </div>
-
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
-                  ch.confidence <= 2 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
-                }`}>
-                  Conf: {ch.confidence}/5
-                </span>
+            {topPriorities.length === 0 ? (
+              <div className="py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                <p className="text-xs font-semibold text-slate-600">All chapters mastered or none available</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Explore chapter tracker to update confidence levels.</p>
               </div>
-            ))}
+            ) : (
+              topPriorities.map((ch, idx) => (
+                <div key={ch.id} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="truncate">
+                      <span className="font-bold text-slate-900 block truncate">{ch.chapter}</span>
+                      <span className="text-[10px] text-slate-500">{ch.subject} • Priority: {ch.priority}</span>
+                    </div>
+                  </div>
+
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
+                    ch.confidence <= 2 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    Conf: {ch.confidence}/5
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -550,29 +625,47 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
           <p className="text-xs text-slate-500 mb-3">Distribution of reasons why marks are lost across recent tests.</p>
 
-          <div className="space-y-2">
-            {mistakeAnalytics.map(m => (
-              <div key={m.code} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
-                    <span>{m.label} ({m.code})</span>
-                  </span>
-                  <span className="font-bold text-slate-900">{m.pct}% ({m.count})</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                  <div 
-                    className="h-1.5 rounded-full transition-all" 
-                    style={{ width: `${m.pct}%`, backgroundColor: m.color }}
-                  />
-                </div>
+          {mistakeAnalytics.length === 0 ? (
+            <div className="py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+              <AlertTriangle className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+              <p className="text-xs font-semibold text-slate-600">No mistakes logged yet</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs mx-auto">
+                Catalog wrong questions in the Mistake Book to analyze mark leakage causes (Calculation, Formula, Concept).
+              </p>
+              <button
+                onClick={() => onNavigateToTab('MISTAKE BOOK')}
+                className="mt-3 px-3 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-colors"
+              >
+                Open Mistake Book
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {mistakeAnalytics.map(m => (
+                  <div key={m.code} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                        <span>{m.label} ({m.code})</span>
+                      </span>
+                      <span className="font-bold text-slate-900">{m.pct}% ({m.count})</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div 
+                        className="h-1.5 rounded-full transition-all" 
+                        style={{ width: `${m.pct}%`, backgroundColor: m.color }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <p className="text-[11px] text-slate-500 mt-3 italic">
-            Calculations & silly errors account for the majority of mark leakages — easily recoverable with scratchpad discipline!
-          </p>
+              <p className="text-[11px] text-slate-500 mt-3 italic">
+                Calculations & silly errors account for the majority of mark leakages — easily recoverable with scratchpad discipline!
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -109,7 +109,7 @@ export const RevisionQueueTab: React.FC<RevisionQueueTabProps> = ({
       </div>
 
       {/* Immediate Next Action Spotlight Card: “Mujhe abhi kya karna chahiye?” */}
-      {topPick && (
+      {topPick ? (
         <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-slate-900 text-white rounded-xl p-6 shadow-md border border-violet-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
@@ -153,6 +153,25 @@ export const RevisionQueueTab: React.FC<RevisionQueueTabProps> = ({
             </button>
           </div>
         </div>
+      ) : (
+        <div className="bg-slate-900 text-white rounded-xl p-6 shadow-xs border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-bold text-violet-400">
+              <Sparkles className="w-4 h-4" />
+              <span>SPACED REPETITION ENGINE READY</span>
+            </div>
+            <h3 className="text-lg font-bold text-white">No chapters currently in the revision queue</h3>
+            <p className="text-xs text-slate-300">
+              Start studying chapters in the Syllabus or PYQ tracker to feed the automated 3-day and 7-day revision cycle.
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigateToTab('SYLLABUS')}
+            className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shrink-0 transition-colors"
+          >
+            Go to Syllabus
+          </button>
+        </div>
       )}
 
       {/* Spaced Repetition Engine Rules (PRD Section 29) */}
@@ -193,7 +212,16 @@ export const RevisionQueueTab: React.FC<RevisionQueueTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {queue.map((ch, idx) => (
+              {queue.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-500 bg-slate-50">
+                    <RefreshCw className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="font-semibold text-xs text-slate-700">Revision queue is clear</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">As you mark chapters IN PROGRESS or COMPLETED in the Syllabus Tracker, they will automatically be prioritized here for spaced revision.</p>
+                  </td>
+                </tr>
+              ) : (
+                queue.map((ch, idx) => (
                 <tr key={ch.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-2 px-3 text-center font-bold text-slate-500 border-r border-slate-200 font-mono">
                     #{idx + 1}
@@ -258,7 +286,7 @@ export const RevisionQueueTab: React.FC<RevisionQueueTabProps> = ({
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

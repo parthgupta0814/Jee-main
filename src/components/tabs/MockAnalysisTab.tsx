@@ -29,15 +29,15 @@ export const MockAnalysisTab: React.FC<MockAnalysisTabProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [testName, setTestName] = useState('');
   const [testType, setTestType] = useState<TestType>('Full syllabus');
-  const [date, setDate] = useState('2026-09-20');
-  const [physicsScore, setPhysicsScore] = useState(50);
-  const [chemistryScore, setChemistryScore] = useState(60);
-  const [mathsScore, setMathsScore] = useState(30);
-  const [correct, setCorrect] = useState(40);
-  const [incorrect, setIncorrect] = useState(12);
-  const [unattempted, setUnattempted] = useState(23);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [physicsScore, setPhysicsScore] = useState(0);
+  const [chemistryScore, setChemistryScore] = useState(0);
+  const [mathsScore, setMathsScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [incorrect, setIncorrect] = useState(0);
+  const [unattempted, setUnattempted] = useState(0);
   const [reason, setReason] = useState<MarkLossReason>('Calculation errors');
-  const [actionItems, setActionItems] = useState('Do rough calculations in dedicated boxed columns; double check Maths signs.');
+  const [actionItems, setActionItems] = useState('');
 
   const reasonsList: MarkLossReason[] = [
     'Knowledge gaps',
@@ -289,7 +289,16 @@ export const MockAnalysisTab: React.FC<MockAnalysisTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {mocks.map((m) => (
+              {mocks.length === 0 ? (
+                <tr>
+                  <td colSpan={15} className="py-12 text-center text-slate-500 bg-slate-50">
+                    <ClipboardList className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="font-semibold text-xs text-slate-700">No mock tests recorded yet</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Click "+ Log New Mock Test" above to log your first full syllabus or part test.</p>
+                  </td>
+                </tr>
+              ) : (
+                mocks.map((m) => (
                 <tr key={m.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-2 px-3 font-mono text-slate-500 border-r border-slate-200">{m.date}</td>
                   <td className="py-2 px-3 font-semibold text-slate-900 border-r border-slate-200">{m.testName}</td>
@@ -331,7 +340,7 @@ export const MockAnalysisTab: React.FC<MockAnalysisTabProps> = ({
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

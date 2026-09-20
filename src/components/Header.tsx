@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline text-slate-400">|</span>
           <span className="text-slate-300 font-medium">Score Recovery Kit</span>
           <span className="hidden md:inline text-slate-400">
-            • Goal: <strong className="text-emerald-400">{profile.targetMarks} Marks</strong> ({profile.targetPercentile})
+            • Goal: <strong className="text-emerald-400">{profile.targetMarks > 0 ? `${profile.targetMarks} Marks` : 'Set Target'}</strong> ({profile.targetPercentile || 'Target Percentile'})
           </span>
         </div>
 
@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onResetData}
             className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title="Reset to sample data"
+            title="Reset all progress to clean start"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>

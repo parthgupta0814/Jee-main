@@ -130,22 +130,29 @@ export const MistakeBookTab: React.FC<MistakeBookTabProps> = ({
             Section 26 — Mistake Analytics & Distribution
           </span>
           <span className="text-xs text-slate-400">
-            {mistakes.filter(m => !m.reattemptStatus).length} Pending Reattempts
+            {mistakes.filter(m => !(m.reattemptStatus ?? m.reattempted)).length} Pending Reattempts
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-          {distribution.map(d => (
-            <div key={d.code} className="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold" style={{ color: d.color }}>{d.code}</span>
-                <span className="font-mono text-slate-400 text-[10px]">{d.count} Qs</span>
+        {mistakes.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 bg-slate-800/50 rounded-lg border border-slate-700/60">
+            <p className="text-xs font-semibold text-slate-300">No mistakes logged yet</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">As you log test errors, their root-cause distribution codes (CALC, FORM, CONC, etc.) will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+            {distribution.map(d => (
+              <div key={d.code} className="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold" style={{ color: d.color }}>{d.code}</span>
+                  <span className="font-mono text-slate-400 text-[10px]">{d.count} Qs</span>
+                </div>
+                <div className="text-lg font-extrabold text-white mt-1">{d.pct}%</div>
+                <span className="text-[10px] text-slate-400 truncate">{d.label}</span>
               </div>
-              <div className="text-lg font-extrabold text-white mt-1">{d.pct}%</div>
-              <span className="text-[10px] text-slate-400 truncate">{d.label}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add Mistake Form */}
@@ -316,7 +323,16 @@ export const MistakeBookTab: React.FC<MistakeBookTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredMistakes.map((m) => {
+              {filteredMistakes.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-slate-500 bg-slate-50">
+                    <AlertTriangle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="font-semibold text-xs text-slate-700">No mistakes logged yet</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Click "+ Log Question Mistake" above to document questions you got wrong and avoid repeating errors.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredMistakes.map((m) => {
                 const typeInfo = MISTAKE_TYPES[m.mistakeType] || { label: m.mistakeType, color: '#64748b' };
                 const isReattempted = m.reattemptStatus ?? m.reattempted ?? false;
                 return (
@@ -381,7 +397,7 @@ export const MistakeBookTab: React.FC<MistakeBookTabProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

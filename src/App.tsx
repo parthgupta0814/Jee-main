@@ -93,7 +93,14 @@ export default function App() {
   const [profile, setProfile] = useState<StudentProfile>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_profile');
-      return saved ? JSON.parse(saved) : INITIAL_STUDENT_PROFILE;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.name === 'Aman Sharma' || parsed.name === 'Arjun Sharma') {
+          return INITIAL_STUDENT_PROFILE;
+        }
+        return parsed;
+      }
+      return INITIAL_STUDENT_PROFILE;
     } catch {
       return INITIAL_STUDENT_PROFILE;
     }
@@ -102,7 +109,13 @@ export default function App() {
   const [chapters, setChapters] = useState<ChapterRecord[]>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_chapters');
-      return saved ? JSON.parse(saved) : INITIAL_CHAPTERS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const hasDummy = parsed.some((c: any) => c.chapter === 'Electrostatics' && c.correctCount === 19);
+        if (hasDummy) return INITIAL_CHAPTERS;
+        return parsed;
+      }
+      return INITIAL_CHAPTERS;
     } catch {
       return INITIAL_CHAPTERS;
     }
@@ -111,7 +124,13 @@ export default function App() {
   const [pyqs, setPyqs] = useState<PyqRecord[]>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_pyqs');
-      return saved ? JSON.parse(saved) : INITIAL_PYQS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const hasDummy = parsed.some((p: any) => p.chapter === 'Current Electricity' && p.y2026 && p.y2025);
+        if (hasDummy) return INITIAL_PYQS;
+        return parsed;
+      }
+      return INITIAL_PYQS;
     } catch {
       return INITIAL_PYQS;
     }
@@ -120,7 +139,13 @@ export default function App() {
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_tasks');
-      return saved ? JSON.parse(saved) : INITIAL_DAILY_TASKS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const hasDummy = parsed.some((t: any) => t.id === 'task-1' && t.chapter === 'Current Electricity');
+        if (hasDummy) return INITIAL_DAILY_TASKS;
+        return parsed;
+      }
+      return INITIAL_DAILY_TASKS;
     } catch {
       return INITIAL_DAILY_TASKS;
     }
@@ -129,7 +154,13 @@ export default function App() {
   const [mocks, setMocks] = useState<MockTest[]>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_mocks');
-      return saved ? JSON.parse(saved) : INITIAL_MOCKS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const hasDummy = parsed.some((m: any) => m.id === 'mock-1' && m.source === 'Allen Part Test 1');
+        if (hasDummy) return INITIAL_MOCKS;
+        return parsed;
+      }
+      return INITIAL_MOCKS;
     } catch {
       return INITIAL_MOCKS;
     }
@@ -138,7 +169,13 @@ export default function App() {
   const [mistakes, setMistakes] = useState<MistakeRecord[]>(() => {
     try {
       const saved = localStorage.getItem('jee_recovery_mistakes');
-      return saved ? JSON.parse(saved) : INITIAL_MISTAKES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const hasDummy = parsed.some((m: any) => m.id === 'mis-1' && m.questionId === 'M5-P14');
+        if (hasDummy) return INITIAL_MISTAKES;
+        return parsed;
+      }
+      return INITIAL_MISTAKES;
     } catch {
       return INITIAL_MISTAKES;
     }
@@ -230,14 +267,14 @@ export default function App() {
   };
 
   const handleResetData = () => {
-    if (window.confirm('Reset all JEE Kit data to the initial PRD template? This will overwrite local edits.')) {
+    if (window.confirm('Reset all progress and clear all data? This will reset all trackers and records to a clean start.')) {
       setProfile(INITIAL_STUDENT_PROFILE);
       setChapters(INITIAL_CHAPTERS);
       setPyqs(INITIAL_PYQS);
       setDailyTasks(INITIAL_DAILY_TASKS);
       setMocks(INITIAL_MOCKS);
       setMistakes(INITIAL_MISTAKES);
-      showToast('Data reset to default template.', 'info');
+      showToast('All progress reset to clean state.', 'info');
     }
   };
 

@@ -44,7 +44,7 @@ export const DailyPlannerTab: React.FC<DailyPlannerTabProps> = ({
   const [newTaskDesc, setNewTaskDesc] = useState('');
   const [newTaskType, setNewTaskType] = useState<TaskType>('PYQ');
   const [newTaskPlannedTime, setNewTaskPlannedTime] = useState<number>(1.5);
-  const [selectedDate, setSelectedDate] = useState<string>('2026-09-20');
+  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
 
   // Filter tasks for selected date (or all)
   const currentDayTasks = useMemo(() => {

@@ -32,11 +32,11 @@ export const GoalsProgressTab: React.FC<GoalsProgressTabProps> = ({
   const revisedChapters = chapters.filter(c => c.revision1).length;
 
   const totalPyqSolved = pyqs.filter(p => p.y2026 && p.y2025 && p.y2024).length;
-  const reattemptedMistakes = mistakes.filter(m => m.reattemptStatus).length;
+  const reattemptedMistakes = mistakes.filter(m => (m.reattemptStatus ?? m.reattempted)).length;
   const reattemptRate = mistakes.length > 0 ? Math.round((reattemptedMistakes / mistakes.length) * 100) : 0;
 
-  const latestScore = mocks.length > 0 ? mocks[mocks.length - 1].totalScore : profile.currentAvgScore;
-  const scoreGap = profile.targetMarks - latestScore;
+  const latestScore = mocks.length > 0 ? mocks[mocks.length - 1].totalScore : null;
+  const scoreGap = latestScore !== null && profile.targetMarks > 0 ? profile.targetMarks - latestScore : null;
 
   // PRD Section 30 Milestones
   const milestones = [
@@ -47,7 +47,7 @@ export const GoalsProgressTab: React.FC<GoalsProgressTabProps> = ({
       reqSyllabus: 50,
       reqMocks: 3,
       desc: 'Complete 50% syllabus with 2021-2024 PYQs and 3 full mocks.',
-      achieved: latestScore >= 140 && mocks.length >= 3
+      achieved: latestScore !== null && latestScore >= 140 && mocks.length >= 3
     },
     {
       id: 2,
@@ -56,16 +56,16 @@ export const GoalsProgressTab: React.FC<GoalsProgressTabProps> = ({
       reqSyllabus: 75,
       reqMocks: 6,
       desc: '75% syllabus covered + 1st revision completed + mistake reattempt rate >= 60%.',
-      achieved: latestScore >= 165 && reattemptRate >= 60
+      achieved: latestScore !== null && latestScore >= 165 && reattemptRate >= 60 && mocks.length >= 6
     },
     {
       id: 3,
       title: 'Milestone 3 — Target Score Realization',
-      targetScore: profile.targetMarks,
+      targetScore: profile.targetMarks > 0 ? profile.targetMarks : 180,
       reqSyllabus: 90,
       reqMocks: 10,
-      desc: `Hit your North Star target of ${profile.targetMarks} marks across 3 consecutive mocks.`,
-      achieved: latestScore >= profile.targetMarks
+      desc: `Hit your North Star target of ${profile.targetMarks > 0 ? profile.targetMarks : 180} marks across consecutive mocks.`,
+      achieved: profile.targetMarks > 0 && latestScore !== null && latestScore >= profile.targetMarks
     },
     {
       id: 4,
@@ -74,7 +74,7 @@ export const GoalsProgressTab: React.FC<GoalsProgressTabProps> = ({
       reqSyllabus: 95,
       reqMocks: 15,
       desc: 'Mastery across 95% of chapters with <8 negative marks per test.',
-      achieved: latestScore >= 210
+      achieved: latestScore !== null && latestScore >= 210
     }
   ];
 
@@ -88,19 +88,21 @@ export const GoalsProgressTab: React.FC<GoalsProgressTabProps> = ({
             <h2 className="text-base font-bold text-slate-900">Goals & Score Recovery Progress</h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Track your journey from {profile.currentAvgScore} marks to {profile.targetMarks} marks ({profile.targetPercentile}).
+            {profile.targetMarks > 0 
+              ? `Track your progress toward your target score of ${profile.targetMarks} marks (${profile.targetPercentile || 'JEE Main'}).`
+              : 'Track your syllabus coverage, revision milestones, and mock scores.'}
           </p>
         </div>
 
         <div className="flex items-center gap-3 text-xs">
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 text-blue-950 font-bold">
-            Target Score: <span className="text-blue-700 font-black">{profile.targetMarks}</span>
+            Target Score: <span className="text-blue-700 font-black">{profile.targetMarks > 0 ? profile.targetMarks : '—'}</span>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5 text-emerald-950 font-bold">
-            Latest Score: <span className="text-emerald-700 font-black">{latestScore}</span>
+            Latest Score: <span className="text-emerald-700 font-black">{latestScore !== null ? latestScore : '—'}</span>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-amber-950 font-bold">
-            Gap Remaining: <span className="text-amber-700 font-black">{scoreGap > 0 ? scoreGap : 0} marks</span>
+            Gap Remaining: <span className="text-amber-700 font-black">{scoreGap !== null ? `${Math.max(0, scoreGap)} marks` : '—'}</span>
           </div>
         </div>
       </div>

@@ -267,11 +267,15 @@ export const StartHereTab: React.FC<StartHereTabProps> = ({
                 <span className="text-xs font-bold text-slate-300 uppercase">Target Score Recovery Deficit</span>
               </div>
               <p className="text-sm text-slate-200">
-                Current Average: <span className="font-bold text-white">{profile.currentAvgScore}</span> / 300 &rarr; Target:{' '}
-                <span className="font-bold text-emerald-400">{profile.targetMarks}</span> / 300
+                Current Average: <span className="font-bold text-white">{profile.currentAvgScore > 0 ? profile.currentAvgScore : 'Not set'}</span> / 300 &rarr; Target:{' '}
+                <span className="font-bold text-emerald-400">{profile.targetMarks > 0 ? profile.targetMarks : 'Not set'}</span> / 300
               </p>
               <p className="text-xs text-slate-400">
-                Gap to eliminate: <strong className="text-amber-400">{scoreGap} marks</strong> (roughly {Math.ceil(scoreGap / 4)} extra questions or {Math.ceil(scoreGap / 5)} negative marks saved).
+                {profile.targetMarks > 0 ? (
+                  <>Gap to eliminate: <strong className="text-amber-400">{Math.max(0, scoreGap)} marks</strong> {scoreGap > 0 ? `(roughly ${Math.ceil(scoreGap / 4)} extra questions or ${Math.ceil(scoreGap / 5)} negative marks saved).` : '(Target reached!)'}</>
+                ) : (
+                  'Set your target score above to calculate your exact mark recovery deficit.'
+                )}
               </p>
             </div>
 

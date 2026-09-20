@@ -56,17 +56,17 @@ export const MISTAKE_TYPES: Record<string, MistakeTypeInfo> = {
 };
 
 export const INITIAL_PROFILE: StudentProfile = {
-  name: 'Aman Sharma',
-  targetExam: 'JEE Main 2027 (January & April)',
-  targetPercentile: '98.8%ile+',
-  targetMarks: 180,
-  currentAvgScore: 132,
-  physicsAvg: 48,
-  chemistryAvg: 57,
-  mathsAvg: 29,
-  dailyStudyHours: 6.5,
-  prepLevel: '50–75%',
-  lastUpdated: '2026-09-20'
+  name: '',
+  targetExam: 'JEE Main 2027',
+  targetPercentile: '',
+  targetMarks: 0,
+  currentAvgScore: 0,
+  physicsAvg: 0,
+  chemistryAvg: 0,
+  mathsAvg: 0,
+  dailyStudyHours: 0,
+  prepLevel: 'Starting',
+  lastUpdated: ''
 };
 
 export const OFFICIAL_JEE_CHAPTERS = [
@@ -164,372 +164,44 @@ export function calculateChapterStatus(
   return 'NOT STARTED';
 }
 
-export const INITIAL_CHAPTERS: ChapterRecord[] = OFFICIAL_JEE_CHAPTERS.map((ch, idx) => {
-  // realistic starting variations matching PRD examples
-  let theory = false;
-  let basicQuestions = false;
-  let pyqs = false;
-  let revision1 = false;
-  let revision2 = false;
-  let mockTested = false;
-  let confidence: 1 | 2 | 3 | 4 | 5 = 3;
-  let correctCount = 0;
-  let attemptedCount = 0;
-  let notes = '';
-  let lastRevisionDate = '';
-  let nextRevisionDate = '';
+export const INITIAL_CHAPTERS: ChapterRecord[] = OFFICIAL_JEE_CHAPTERS.map((ch, idx) => ({
+  id: `ch-${idx + 1}`,
+  subject: ch.subject === 'Mathematics' ? 'Maths' : ch.subject,
+  chapter: ch.name,
+  priority: ch.defaultPriority,
+  theory: false,
+  basicQuestions: false,
+  pyqs: false,
+  revision1: false,
+  revision2: false,
+  mockTested: false,
+  confidence: 1,
+  correctCount: 0,
+  attemptedCount: 0,
+  accuracy: 0,
+  status: 'NOT STARTED',
+  lastRevisionDate: '',
+  nextRevisionDate: '',
+  notes: ''
+}));
 
-  if (ch.name === 'Electrostatics') {
-    theory = true; basicQuestions = true; pyqs = true; mockTested = true;
-    confidence = 3; correctCount = 19; attemptedCount = 30; // 63%
-    notes = 'Gauss law application questions need practice';
-  } else if (ch.name === 'Current Electricity') {
-    theory = true; basicQuestions = true; pyqs = true; revision1 = true; mockTested = true;
-    confidence = 4; correctCount = 27; attemptedCount = 35; // 77%
-    lastRevisionDate = '2026-09-12'; nextRevisionDate = '2026-09-22';
-    notes = 'Potentiometer removed in 2024+, focus on Kirchhoff & RC circuits';
-  } else if (ch.name === 'General Organic Chemistry (GOC)') {
-    theory = true; basicQuestions = true; pyqs = true; mockTested = true;
-    confidence = 2; correctCount = 18; attemptedCount = 30; // 60%
-    notes = 'Acidic strength & stability of carbocations getting confused';
-  } else if (ch.name === 'Matrices & Determinants') {
-    theory = true; basicQuestions = true; pyqs = true; mockTested = true;
-    confidence = 3; correctCount = 15; attemptedCount = 25; // 60%
-    notes = 'Cramer rule & matrix polynomial inverses';
-  } else if (ch.name === 'Probability') {
-    theory = true; basicQuestions = true; pyqs = false;
-    confidence = 2; correctCount = 8; attemptedCount = 18; // 44%
-    notes = 'Bayes theorem and multinomial distributions';
-  } else if (ch.name === 'Chemical Bonding & Molecular Structure') {
-    theory = true; basicQuestions = true; pyqs = true; revision1 = true; mockTested = true;
-    confidence = 5; correctCount = 38; attemptedCount = 42; // 90%
-    notes = 'Strong chapter; MOT questions smooth';
-  } else if (ch.name === 'Modern Physics (Dual Nature / Atoms)') {
-    theory = true; basicQuestions = true; pyqs = true; revision1 = true; mockTested = true;
-    confidence = 4; correctCount = 32; attemptedCount = 38;
-  } else if (idx % 3 === 0) {
-    theory = true; basicQuestions = true; pyqs = true;
-    confidence = 3; correctCount = 14; attemptedCount = 20;
-  } else if (idx % 4 === 0) {
-    theory = true; basicQuestions = false;
-    confidence = 2; correctCount = 5; attemptedCount = 10;
-  }
+export const INITIAL_PYQ_RECORDS: PyqRecord[] = OFFICIAL_JEE_CHAPTERS.map((ch, idx) => ({
+  id: `pyq-${idx + 1}`,
+  subject: ch.subject === 'Mathematics' ? 'Maths' : ch.subject,
+  chapter: ch.name,
+  y2026: false,
+  y2025: false,
+  y2024: false,
+  y2023: false,
+  y2022: false,
+  y2021: false
+}));
 
-  const accuracy = attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0;
-  const status = calculateChapterStatus(theory, basicQuestions, pyqs, revision1, mockTested, accuracy);
+export const INITIAL_DAILY_TASKS: DailyTask[] = [];
 
-  return {
-    id: `ch-${idx + 1}`,
-    subject: ch.subject === 'Mathematics' ? 'Maths' : ch.subject,
-    chapter: ch.name,
-    priority: ch.defaultPriority,
-    theory,
-    basicQuestions,
-    pyqs,
-    revision1,
-    revision2,
-    mockTested,
-    confidence,
-    correctCount,
-    attemptedCount,
-    accuracy,
-    status,
-    lastRevisionDate,
-    nextRevisionDate,
-    notes
-  };
-});
+export const INITIAL_MOCKS: MockTest[] = [];
 
-export const INITIAL_PYQ_RECORDS: PyqRecord[] = OFFICIAL_JEE_CHAPTERS.map((ch, idx) => {
-  const isSelected = ch.name === 'Current Electricity' || ch.name === 'Electrostatics' || ch.name === 'Chemical Bonding & Molecular Structure';
-  return {
-    id: `pyq-${idx + 1}`,
-    subject: ch.subject === 'Mathematics' ? 'Maths' : ch.subject,
-    chapter: ch.name,
-    y2026: isSelected || idx % 2 === 0,
-    y2025: isSelected || idx % 3 === 0,
-    y2024: isSelected || idx % 4 === 0,
-    y2023: isSelected && idx % 2 === 0,
-    y2022: false,
-    y2021: false
-  };
-});
-
-export const INITIAL_DAILY_TASKS: DailyTask[] = [
-  {
-    id: 'task-1',
-    date: '2026-09-20',
-    subject: 'Physics',
-    chapter: 'Current Electricity',
-    task: 'Solve 25 PYQs from 2024–2025 sessions',
-    type: 'PYQ',
-    plannedTimeHours: 2.0,
-    done: true,
-    actualTimeHours: 1.8
-  },
-  {
-    id: 'task-2',
-    date: '2026-09-20',
-    subject: 'Chemistry',
-    chapter: 'General Organic Chemistry (GOC)',
-    task: 'GOC Revision — Acidic strength & Hyperconjugation order',
-    type: 'Revision',
-    plannedTimeHours: 1.5,
-    done: true,
-    actualTimeHours: 1.5
-  },
-  {
-    id: 'task-3',
-    date: '2026-09-20',
-    subject: 'Maths',
-    chapter: 'Matrices & Determinants',
-    task: 'Matrices 25 PYQs & Adjoint properties',
-    type: 'Practice',
-    plannedTimeHours: 2.0,
-    done: false,
-    actualTimeHours: 0
-  },
-  {
-    id: 'task-4',
-    date: '2026-09-20',
-    subject: 'Chemistry',
-    chapter: 'Equilibrium (Chemical & Ionic)',
-    task: 'Reattempt 10 wrong questions from Mistake Book',
-    type: 'Mistake Reattempt',
-    plannedTimeHours: 1.0,
-    done: false,
-    actualTimeHours: 0
-  },
-  {
-    id: 'task-5',
-    date: '2026-09-20',
-    subject: 'Physics',
-    chapter: 'Thermal Physics & Thermodynamics',
-    task: 'Analyse Mock #4 physics section errors',
-    type: 'Mock Analysis',
-    plannedTimeHours: 1.0,
-    done: false,
-    actualTimeHours: 0
-  }
-];
-
-export const INITIAL_MOCKS: MockTest[] = [
-  {
-    id: 'mock-1',
-    mockNumber: 'Mock 1',
-    date: '2026-08-15',
-    source: 'Allen Part Test 1',
-    physicsScore: 42,
-    chemistryScore: 48,
-    mathsScore: 22,
-    totalScore: 112,
-    attempted: 45,
-    correct: 32,
-    incorrect: 13,
-    skipped: 30,
-    accuracy: 71.1,
-    timeIssue: true,
-    mainProblem: 'Time wasted on first 4 math questions',
-    actionRequired: 'Leave difficult calculus questions immediately',
-    markingScheme: { correct: 4, incorrect: 1 }
-  },
-  {
-    id: 'mock-2',
-    mockNumber: 'Mock 2',
-    date: '2026-08-28',
-    source: 'MathonGo Full Mock 1',
-    physicsScore: 48,
-    chemistryScore: 54,
-    mathsScore: 24,
-    totalScore: 126,
-    attempted: 48,
-    correct: 36,
-    incorrect: 12,
-    skipped: 27,
-    accuracy: 75.0,
-    timeIssue: false,
-    mainProblem: 'Organic reaction conditions mixed up',
-    actionRequired: 'Daily 15 min reaction mechanism flashcard',
-    markingScheme: { correct: 4, incorrect: 1 }
-  },
-  {
-    id: 'mock-3',
-    mockNumber: 'Mock 3',
-    date: '2026-09-05',
-    source: 'Allen Part Test 2',
-    physicsScore: 46,
-    chemistryScore: 51,
-    mathsScore: 24,
-    totalScore: 121,
-    attempted: 52,
-    correct: 37,
-    incorrect: 15,
-    skipped: 23,
-    accuracy: 71.2,
-    timeIssue: true,
-    mainProblem: 'Excessive negative marking in Physics multi-statement',
-    actionRequired: 'Avoid wild 50-50 guesses',
-    markingScheme: { correct: 4, incorrect: 1 }
-  },
-  {
-    id: 'mock-4',
-    mockNumber: 'Mock 4',
-    date: '2026-09-12',
-    source: 'MathonGo Full Mock 2',
-    physicsScore: 52,
-    chemistryScore: 59,
-    mathsScore: 28,
-    totalScore: 139,
-    attempted: 50,
-    correct: 40,
-    incorrect: 10,
-    skipped: 25,
-    accuracy: 80.0,
-    timeIssue: false,
-    mainProblem: 'Calculation slips in 3 simple arithmetic questions',
-    actionRequired: 'Double check final arithmetic before bubble click',
-    markingScheme: { correct: 4, incorrect: 1 }
-  },
-  {
-    id: 'mock-5',
-    mockNumber: 'Mock 5',
-    date: '2026-09-19',
-    source: 'NTA Official Abhyas Test',
-    physicsScore: 54,
-    chemistryScore: 62,
-    mathsScore: 31,
-    totalScore: 148,
-    attempted: 54,
-    correct: 44,
-    incorrect: 10,
-    skipped: 21,
-    accuracy: 81.5,
-    timeIssue: false,
-    mainProblem: 'Vectors 3D formula forgotten for shortest distance',
-    actionRequired: 'Revise 3D geometry skew lines formula sheet',
-    markingScheme: { correct: 4, incorrect: 1 }
-  }
-];
-
-export const INITIAL_MISTAKES: MistakeRecord[] = [
-  {
-    id: 'mis-1',
-    questionId: 'M5-P14',
-    date: '2026-09-19',
-    subject: 'Physics',
-    chapter: 'Current Electricity',
-    mistakeType: 'CALC',
-    whyWrong: 'Calculated 1/R_eq instead of inverting to find R_eq in parallel bridge',
-    correctConcept: 'R_eq = (R1*R2)/(R1+R2); remember to invert reciprocal',
-    reattemptDate: '2026-09-22',
-    reattempted: false,
-    fixed: false
-  },
-  {
-    id: 'mis-2',
-    questionId: 'M5-C08',
-    date: '2026-09-19',
-    subject: 'Chemistry',
-    chapter: 'General Organic Chemistry (GOC)',
-    mistakeType: 'C',
-    whyWrong: 'Thought -NO2 at meta position showed -M effect, but only -I operates at meta',
-    correctConcept: 'Resonance / Mesomeric effect does NOT operate at meta positions',
-    reattemptDate: '2026-09-21',
-    reattempted: true,
-    fixed: true
-  },
-  {
-    id: 'mis-3',
-    questionId: 'M5-M12',
-    date: '2026-09-19',
-    subject: 'Maths',
-    chapter: 'Three Dimensional Geometry (3D)',
-    mistakeType: 'F',
-    whyWrong: 'Forgot the cross-product denominator in shortest distance formula between skew lines',
-    correctConcept: 'd = |(a2 - a1) . (b1 x b2)| / |b1 x b2|',
-    reattemptDate: '2026-09-21',
-    reattempted: false,
-    fixed: false
-  },
-  {
-    id: 'mis-4',
-    questionId: 'M4-P04',
-    date: '2026-09-12',
-    subject: 'Physics',
-    chapter: 'Electrostatics',
-    mistakeType: 'S',
-    whyWrong: 'Took charge in microCoulombs without converting to SI Coulombs (10^-6)',
-    correctConcept: 'Always write down SI unit multiplier in scratchpad at first glance',
-    reattemptDate: '2026-09-15',
-    reattempted: true,
-    fixed: true
-  },
-  {
-    id: 'mis-5',
-    questionId: 'M4-C19',
-    date: '2026-09-12',
-    subject: 'Chemistry',
-    chapter: 'Equilibrium (Chemical & Ionic)',
-    mistakeType: 'CALC',
-    whyWrong: 'Squaring (2x)^2 gave 2x^2 instead of 4x^2 in Ksp expression',
-    correctConcept: 'Solubility product for AB2 is [A][B]^2 = s*(2s)^2 = 4s^3',
-    reattemptDate: '2026-09-16',
-    reattempted: true,
-    fixed: true
-  },
-  {
-    id: 'mis-6',
-    questionId: 'M4-M20',
-    date: '2026-09-12',
-    subject: 'Maths',
-    chapter: 'Matrices & Determinants',
-    mistakeType: 'R',
-    whyWrong: 'Question asked for non-trivial solutions (det = 0), but solved for unique trivial solution',
-    correctConcept: 'Homogeneous system AX=0 has non-trivial solutions iff det(A) = 0',
-    reattemptDate: '2026-09-16',
-    reattempted: true,
-    fixed: false
-  },
-  {
-    id: 'mis-7',
-    questionId: 'M3-P18',
-    date: '2026-09-05',
-    subject: 'Physics',
-    chapter: 'Thermal Physics & Thermodynamics',
-    mistakeType: 'T',
-    whyWrong: 'Spent 6.5 minutes deriving adiabatic work formula under rush',
-    correctConcept: 'Memorize W_adiabatic = (P1V1 - P2V2)/(gamma - 1) directly',
-    reattemptDate: '2026-09-09',
-    reattempted: true,
-    fixed: true
-  },
-  {
-    id: 'mis-8',
-    questionId: 'M3-C03',
-    date: '2026-09-05',
-    subject: 'Chemistry',
-    chapter: 'Coordination Compounds',
-    mistakeType: 'C',
-    whyWrong: 'Assumed oxalate ion was monodentate; failed chelation ring stability',
-    correctConcept: 'Oxalate (ox^2-) is a bidentate dicarboxylate ligand',
-    reattemptDate: '2026-09-10',
-    reattempted: true,
-    fixed: true
-  },
-  {
-    id: 'mis-9',
-    questionId: 'M2-M07',
-    date: '2026-08-28',
-    subject: 'Maths',
-    chapter: 'Probability',
-    mistakeType: 'G',
-    whyWrong: 'Eliminated option B and guessed option C blindly without calculating conditioning',
-    correctConcept: 'Do not guess in probability; conditional P(A|B) requires exact Bayes fractions',
-    reattemptDate: '2026-09-02',
-    reattempted: false,
-    fixed: false
-  }
-];
+export const INITIAL_MISTAKES: MistakeRecord[] = [];
 
 export const INITIAL_STUDENT_PROFILE = INITIAL_PROFILE;
 export const INITIAL_PYQS = INITIAL_PYQ_RECORDS;
