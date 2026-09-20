@@ -1,0 +1,6 @@
+{
+  "name": "JEE Main 2027 Score Recovery Kit",
+  "description": "Interactive JEE Main 2027 score recovery system to track chapters, plan daily tasks, analyze mocks, log mistakes, and manage revision queues.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
